@@ -27,11 +27,11 @@ EcoEscape is a web application that aims to promote eco-friendly tourism by prov
 
 2. install dependencies:
 
-  ```bash
-  cd ecoescape
-  npm install
+   ```bash
+   cd ecoescape
+   npm install
 
 3. start the server
 
-  ```bash
-  npm start
+   ```bash
+   npm start
