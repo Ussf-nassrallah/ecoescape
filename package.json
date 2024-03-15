@@ -1,0 +1,14 @@
+{
+  "name": "ecoescape",
+  "version": "1.0.0",
+  "description": "EcoEscape, final portfolio project by youssef nasrallah",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "youssef nasrallah",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.3"
+  }
+}
