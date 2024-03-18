@@ -4,7 +4,7 @@ exports.getAllUsers = (req, res) => {
     status: 'error',
     message: 'This route is not yet defined!',
   });
-}
+};
 
 // get a single user
 exports.getUser = (req, res) => {
@@ -12,7 +12,7 @@ exports.getUser = (req, res) => {
     status: 'error',
     message: 'This route is not yet defined!',
   });
-}
+};
 
 // create a new user
 exports.createUser = (req, res) => {
@@ -20,7 +20,7 @@ exports.createUser = (req, res) => {
     status: 'error',
     message: 'This route is not yet defined!',
   });
-}
+};
 
 // update user
 exports.updateUser = (req, res) => {
@@ -28,7 +28,7 @@ exports.updateUser = (req, res) => {
     status: 'error',
     message: 'This route is not yet defined!',
   });
-}
+};
 
 // delete user
 exports.deleteUser = (req, res) => {
@@ -36,4 +36,4 @@ exports.deleteUser = (req, res) => {
     status: 'error',
     message: 'This route is not yet defined!',
   });
-}
+};
