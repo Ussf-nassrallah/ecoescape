@@ -14,7 +14,16 @@ exports.getTours = async (req, res) => {
     queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
 
     // Create a query object to filter tours based on specified criteria
-    const query = Tour.find(JSON.parse(queryStr));
+    let query = Tour.find(JSON.parse(queryStr));
+
+    // Sorting result (tours)
+    if (req.query.sort) {
+      const sortBy = req.query.sort.split(',').join(' ');
+      query = query.sort(sortBy);
+    } else {
+      query = query.sort('-createdAt');
+    }
+
     // Execute the query to fetch tours matching the specified criteria and await the result
     const tours = await query;
 
