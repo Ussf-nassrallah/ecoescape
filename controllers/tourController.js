@@ -24,6 +24,14 @@ exports.getTours = async (req, res) => {
       query = query.sort('-createdAt');
     }
 
+    // field limiting
+    if (req.query.fields) {
+      const fields = req.query.fields.split(',').join(' ');
+      query.select(fields);
+    } else {
+      query.select('-__v');
+    }
+
     // Execute the query to fetch tours matching the specified criteria and await the result
     const tours = await query;
 
