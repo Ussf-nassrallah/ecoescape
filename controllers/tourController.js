@@ -3,8 +3,20 @@ const Tour = require('../models/tourModel');
 // get a list of tours
 exports.getTours = async (req, res) => {
   try {
-    const tours = await Tour.find();
+    // eslint-disable-next-line node/no-unsupported-features/es-syntax
+    const queryObj = { ...req.query };
+    const excludedFields = ['page', 'limit', 'sort', 'fields'];
 
+    // Delete excluded fields from queryObj
+    excludedFields.forEach((field) => delete queryObj[field]);
+
+    // Create a query object to filter tours based on specified criteria
+    const query = Tour.find(queryObj);
+
+    // Execute the query to fetch tours matching the specified criteria and await the result
+    const tours = await query;
+
+    // Send response
     res.status(200).json({
       status: 'success',
       results: tours.length,
