@@ -6,13 +6,15 @@ exports.getTours = async (req, res) => {
     // eslint-disable-next-line node/no-unsupported-features/es-syntax
     const queryObj = { ...req.query };
     const excludedFields = ['page', 'limit', 'sort', 'fields'];
-
     // Delete excluded fields from queryObj
     excludedFields.forEach((field) => delete queryObj[field]);
 
-    // Create a query object to filter tours based on specified criteria
-    const query = Tour.find(queryObj);
+    // Advanced filtering
+    let queryStr = JSON.stringify(queryObj);
+    queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
 
+    // Create a query object to filter tours based on specified criteria
+    const query = Tour.find(JSON.parse(queryStr));
     // Execute the query to fetch tours matching the specified criteria and await the result
     const tours = await query;
 
