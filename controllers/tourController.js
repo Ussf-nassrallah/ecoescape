@@ -125,3 +125,41 @@ exports.deleteTour = async (req, res) => {
     });
   }
 };
+
+// Retrieve tour statistics based on specified criteria
+exports.getTourStats = async (req, res) => {
+  try {
+    // Aggregate tour data based on specified conditions
+    const statistics = await Tour.aggregate([
+      {
+        $match: { ratingsAverage: { $gte: 4.5 } }, // Match tours with average ratings greater than or equal to 4.5
+      },
+      {
+        $group: {
+          // Group tours based on difficulty level
+          _id: { $toUpper: '$difficulty' }, // Convert difficulty level to uppercase
+          numTours: { $sum: 1 }, // Count the number of tours in each difficulty category
+          numRatings: { $sum: '$ratingsQuantity' }, // Calculate total number of ratings for each difficulty category
+          avgRating: { $avg: '$ratingsAverage' }, // Calculate average rating for each difficulty category
+          avgPrice: { $avg: '$price' }, // Calculate average price for each difficulty category
+          minPrice: { $min: '$price' }, // Determine minimum price for each difficulty category
+          maxPrice: { $max: '$price' }, // Determine maximum price for each difficulty category
+        },
+      },
+    ]);
+
+    // Send successful response with tour statistics
+    return res.status(200).json({
+      status: 'success',
+      data: { statistics },
+    });
+  } catch (error) {
+    // Handle errors and send error response if an error occurs
+    console.error('Error in getTourStats:', error);
+
+    return res.status(500).json({
+      status: 'error',
+      message: 'Internal server error',
+    });
+  }
+};
