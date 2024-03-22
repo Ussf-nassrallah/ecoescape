@@ -1,51 +1,23 @@
 const Tour = require('../models/tourModel');
+const APIFeatures = require('../utils/apiFeatures');
+
+exports.aliasTopTours = (req, res, next) => {
+  req.query.limit = '5';
+  req.query.sort = '-ratingsAverage,price';
+  req.query.fields = 'name,price,ratingsAverage,summary,difficulty';
+  next();
+};
 
 // get a list of tours
 exports.getTours = async (req, res) => {
   try {
-    // eslint-disable-next-line node/no-unsupported-features/es-syntax
-    const queryObj = { ...req.query };
-    const excludedFields = ['page', 'limit', 'sort', 'fields'];
-    // Delete excluded fields from queryObj
-    excludedFields.forEach((field) => delete queryObj[field]);
-
-    // Advanced filtering
-    let queryStr = JSON.stringify(queryObj);
-    queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
-
-    // Create a query object to filter tours based on specified criteria
-    let query = Tour.find(JSON.parse(queryStr));
-
-    // Sorting result (tours)
-    if (req.query.sort) {
-      const sortBy = req.query.sort.split(',').join(' ');
-      query = query.sort(sortBy);
-    }
-    // } else {
-    //   query = query.sort('-createdAt');
-    // }
-
-    // field limiting
-    if (req.query.fields) {
-      const fields = req.query.fields.split(',').join(' ');
-      query.select(fields);
-    } else {
-      query.select('-__v');
-    }
-
-    // pagination
-    const page = req.query.page * 1 || 1;
-    const limit = req.query.limit * 1 || 100;
-    const skip = (page - 1) * limit;
-    query = query.skip(skip).limit(limit);
-
-    if (req.query.page) {
-      const numTours = await Tour.countDocuments();
-      if (numTours <= skip) throw new Error('This page does not exist');
-    }
-
     // Execute the query to fetch tours matching the specified criteria and await the result
-    const tours = await query;
+    const features = new APIFeatures(Tour.find(), req.query)
+      .filter()
+      .sort()
+      .limitFields()
+      .paginate();
+    const tours = await features.query;
 
     // Send response
     res.status(200).json({
