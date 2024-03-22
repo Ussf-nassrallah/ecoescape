@@ -20,9 +20,10 @@ exports.getTours = async (req, res) => {
     if (req.query.sort) {
       const sortBy = req.query.sort.split(',').join(' ');
       query = query.sort(sortBy);
-    } else {
-      query = query.sort('-createdAt');
     }
+    // } else {
+    //   query = query.sort('-createdAt');
+    // }
 
     // field limiting
     if (req.query.fields) {
@@ -30,6 +31,17 @@ exports.getTours = async (req, res) => {
       query.select(fields);
     } else {
       query.select('-__v');
+    }
+
+    // pagination
+    const page = req.query.page * 1 || 1;
+    const limit = req.query.limit * 1 || 100;
+    const skip = (page - 1) * limit;
+    query = query.skip(skip).limit(limit);
+
+    if (req.query.page) {
+      const numTours = await Tour.countDocuments();
+      if (numTours <= skip) throw new Error('This page does not exist');
     }
 
     // Execute the query to fetch tours matching the specified criteria and await the result
@@ -46,7 +58,7 @@ exports.getTours = async (req, res) => {
 
     res.status(404).json({
       status: 'error',
-      message: 'Failed to get tours',
+      message: error,
     });
   }
 };
