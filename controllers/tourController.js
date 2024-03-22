@@ -132,6 +132,7 @@ exports.getTourStats = async (req, res) => {
     // Aggregate tour data based on specified conditions
     const statistics = await Tour.aggregate([
       {
+        // match: Select Documents.
         $match: { ratingsAverage: { $gte: 4.5 } }, // Match tours with average ratings greater than or equal to 4.5
       },
       {
@@ -156,6 +157,63 @@ exports.getTourStats = async (req, res) => {
   } catch (error) {
     // Handle errors and send error response if an error occurs
     console.error('Error in getTourStats:', error);
+
+    return res.status(500).json({
+      status: 'error',
+      message: 'Internal server error',
+    });
+  }
+};
+
+// Retrieve monthly tour plan for a specified year
+exports.getMonthlyPlan = async (req, res) => {
+  try {
+    // Extract the year from the request parameters and convert it to a number
+    const year = req.params.year * 1;
+
+    // Aggregate tour data to generate monthly plan
+    const plan = await Tour.aggregate([
+      {
+        $unwind: '$startDates', // Split tours by start dates
+      },
+      {
+        $match: {
+          // Filter tours for the specified year
+          startDates: {
+            $gte: new Date(`${year}-01-01`), // Start date greater than or equal to January 1st of the year
+            $lte: new Date(`${year}-12-31`), // Start date less than or equal to December 31st of the year
+          },
+        },
+      },
+      {
+        $group: {
+          // Group tours by month
+          _id: { $month: '$startDates' }, // Extract month from start date
+          numTourStarts: { $sum: 1 }, // Count the number of tours starting in each month
+          tours: { $push: '$name' }, // List tours starting in each month
+        },
+      },
+      {
+        $addFields: { month: '$_id' }, // Add month field to the result
+      },
+      {
+        $project: {
+          _id: 0, // Exclude _id from the result
+        },
+      },
+      {
+        $sort: { numTourStarts: -1 }, // Sort the result by number of tour starts in descending order
+      },
+    ]);
+
+    // Send successful response with monthly plan data
+    return res.status(200).json({
+      status: 'success',
+      data: { plan },
+    });
+  } catch (error) {
+    // Handle errors and send error response if an error occurs
+    console.error('Error in getMonthlyPlan:', error);
 
     return res.status(500).json({
       status: 'error',
