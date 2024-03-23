@@ -77,7 +77,7 @@ exports.createTour = async (req, res) => {
 
     res.status(400).json({
       status: 'error',
-      message: 'Failed to create tour (invalid data sent!)',
+      message: error,
     });
   }
 };
@@ -100,7 +100,7 @@ exports.updateTour = async (req, res) => {
   } catch (error) {
     res.status(400).json({
       status: 'error',
-      message: 'Tour not updated (invalid data sent!)',
+      message: error,
     });
   }
 };
