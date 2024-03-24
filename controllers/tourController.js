@@ -1,6 +1,7 @@
 const Tour = require('../models/tourModel');
 const APIFeatures = require('../utils/apiFeatures');
 const catchAsync = require('../utils/catchAsync');
+const AppError = require('../utils/appError');
 
 exports.aliasTopTours = (req, res, next) => {
   req.query.limit = '5';
@@ -32,6 +33,13 @@ exports.getTour = catchAsync(async (req, res, next) => {
   const tourId = req.params.id;
   const tour = await Tour.findById(tourId);
 
+  // Check if a tour is not found in the database
+  if (!tour) {
+    // If no tour is found, create a new AppError with a message indicating the resource was not found
+    // Pass the error to the next middleware function (app.js -> globalErrorHandler) with a 404 status code
+    return next(new AppError('No tour found with that ID', 404));
+  }
+
   return res.status(200).json({
     status: 'success',
     data: { tour },
@@ -61,6 +69,13 @@ exports.updateTour = catchAsync(async (req, res, next) => {
     runValidators: true,
   });
 
+  // Check if a tour is not found in the database
+  if (!tour) {
+    // If no tour is found, create a new AppError with a message indicating the resource was not found
+    // Pass the error to the next middleware function (app.js -> globalErrorHandler) with a 404 status code
+    return next(new AppError('No tour found with that ID', 404));
+  }
+
   res.status(200).json({
     status: 'success',
     message: 'tour updated successfully',
@@ -71,7 +86,14 @@ exports.updateTour = catchAsync(async (req, res, next) => {
 // delete a tour
 exports.deleteTour = catchAsync(async (req, res, next) => {
   const tourId = req.params.id;
-  await Tour.findByIdAndDelete(tourId);
+  const tour = await Tour.findByIdAndDelete(tourId);
+
+  // Check if a tour is not found in the database
+  if (!tour) {
+    // If no tour is found, create a new AppError with a message indicating the resource was not found
+    // Pass the error to the next middleware function (app.js -> globalErrorHandler) with a 404 status code
+    return next(new AppError('No tour found with that ID', 404));
+  }
 
   res.status(204).json({
     status: 'success',
