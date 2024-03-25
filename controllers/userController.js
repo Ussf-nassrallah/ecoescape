@@ -1,10 +1,19 @@
+const User = require('../models/userModel');
+const catchAsync = require('../utils/catchAsync');
+
 // get a list of users
-exports.getAllUsers = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'This route is not yet defined!',
+exports.getAllUsers = catchAsync(async (req, res, next) => {
+  const users = await User.find();
+
+  // send Response
+  res.status(200).json({
+    status: 'success',
+    results: users.length,
+    data: {
+      users,
+    },
   });
-};
+});
 
 // get a single user
 exports.getUser = (req, res) => {

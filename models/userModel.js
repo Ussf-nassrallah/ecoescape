@@ -23,6 +23,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, 'password is required, please provide a password'],
     minlength: 8,
+    select: false, // hide password (don't send it)
   },
 
   passwordConfirm: {
@@ -53,6 +54,15 @@ userSchema.pre('save', async function (next) {
   // call the next middleware
   next();
 });
+
+// compared hashed password with original password
+// this method is available in objects created from userShema
+userSchema.methods.correctPassword = async function (
+  candidatePassword,
+  userPassword,
+) {
+  return await bcrypt.compare(candidatePassword, userPassword);
+};
 
 // Create User model from userSchema
 const User = mongoose.model('User', userSchema);
