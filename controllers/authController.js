@@ -66,7 +66,7 @@ exports.protect = catchAsync(async (req, res, next) => {
 
   if (
     req.headers.authorization &&
-    req.headers.authorization.startsWith('Basic')
+    req.headers.authorization.startsWith('Bearer')
   ) {
     token = req.headers.authorization.split(' ')[1];
   }
@@ -102,3 +102,19 @@ exports.protect = catchAsync(async (req, res, next) => {
   req.user = freshUser;
   next();
 });
+
+// Middleware function to restrict access based on user roles
+// This function checks if the current user's role allows access to the requested resource
+exports.restrictTo =
+  (...roles) =>
+  (req, res, next) => {
+    // check if the user role is not 'admin' or 'lead-guide'
+    if (!roles.includes(req.user.role)) {
+      return next(
+        new AppError("You don't have permission to perform this action", 403),
+      );
+    }
+
+    // move to the next Middleware
+    next();
+  };
