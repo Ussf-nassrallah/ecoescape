@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const { promisify } = require('util');
 const User = require('../models/userModel');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
@@ -17,6 +18,7 @@ exports.signup = catchAsync(async (req, res, next) => {
     photo: req.body.photo,
     password: req.body.password,
     passwordConfirm: req.body.passwordConfirm,
+    passwordChangedAt: req.body.passwordChangedAt,
   });
 
   // generate token for the Signup user
@@ -55,4 +57,48 @@ exports.login = catchAsync(async (req, res, next) => {
     status: 'success',
     token,
   });
+});
+
+// Protect routes from unauthorized access
+exports.protect = catchAsync(async (req, res, next) => {
+  // getting token and check of it's there
+  let token = '';
+
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith('Basic')
+  ) {
+    token = req.headers.authorization.split(' ')[1];
+  }
+
+  if (!token) {
+    return next(new AppError('Unauthorized! Please log in to get access', 401));
+  }
+
+  // verification token
+  const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+
+  // Check if user still exists (user based on decoded ID)
+  const freshUser = await User.findById(decoded.id);
+
+  if (!freshUser) {
+    return next(
+      new AppError(
+        'The user belonging to this token does no longer exist.',
+        401,
+      ),
+    );
+  }
+
+  // Check if user changed password after the token was issued
+  if (freshUser.changedPasswordAfter(decoded.iat)) {
+    return next(
+      new AppError('User recently changed password! Please log in again.', 401),
+    );
+  }
+
+  // Grant Access to protected Route
+  // move to the next Middleware.
+  req.user = freshUser;
+  next();
 });

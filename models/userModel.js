@@ -41,6 +41,8 @@ const userSchema = new mongoose.Schema({
       message: 'Passwords are not the same!',
     },
   },
+
+  passwordChangedAt: Date,
 });
 
 // This middleware is gonna run before an actual event .save() and .create()
@@ -62,6 +64,24 @@ userSchema.methods.correctPassword = async function (
   userPassword,
 ) {
   return await bcrypt.compare(candidatePassword, userPassword);
+};
+
+// changedPasswordAfter: Method that check if the password changed after getting JWT
+userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
+  if (this.passwordChangedAt) {
+    // convert Date to seconds and change the type to Int
+    const changedTimestamp = parseInt(
+      this.passwordChangedAt.getTime() / 1000,
+      10,
+    );
+
+    // compare the time when password updated with the time when generate a token
+    // true means password changed
+    return changedTimestamp > JWTTimestamp;
+  }
+
+  // false means NOT changed Password
+  return false;
 };
 
 // Create User model from userSchema
