@@ -1,5 +1,6 @@
 const express = require('express');
 const morgan = require('morgan');
+const rateLimit = require('express-rate-limit');
 
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
@@ -14,6 +15,18 @@ if (process.env.NODE_ENV === 'development') {
    */
   app.use(morgan('dev'));
 }
+
+/**
+ * Global Middleware
+ * rate limiter Middleware is gonna count the number of requests comming from one IP
+ */
+const limiter = rateLimit({
+  max: 100,
+  windowMs: 60 * 60 * 1000,
+  message: 'Too many requests from this IP, please try again in an hour!',
+});
+
+app.use('/api', limiter);
 
 /**
  * Middleware responsible for parsing data from the request body.
