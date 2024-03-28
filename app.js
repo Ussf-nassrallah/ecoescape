@@ -1,6 +1,10 @@
 const express = require('express');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
+const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
+const hpp = require('hpp');
 
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
@@ -9,10 +13,15 @@ const userRouter = require('./routes/userRoutes');
 
 const app = express();
 
+/**
+ * Set security HTTP headers
+ */
+app.use(helmet());
+
+/**
+ * Middleware responsible for logging request information as it comes to the server.
+ */
 if (process.env.NODE_ENV === 'development') {
-  /**
-   * Middleware responsible for logging request information as it comes to the server.
-   */
   app.use(morgan('dev'));
 }
 
@@ -30,8 +39,36 @@ app.use('/api', limiter);
 
 /**
  * Middleware responsible for parsing data from the request body.
+ * the size of the data that will be parsing should be max 10kb
  */
-app.use(express.json());
+app.use(express.json({ limit: '10kb' }));
+
+/**
+ * Data sanitization against NOSql query injection
+ */
+app.use(mongoSanitize());
+
+/**
+ * Data sanitization against XSS
+ */
+app.use(xss());
+
+/**
+ * Prevent parameter pollution
+ * this Middleware removes duplicate fields from query string
+ */
+app.use(
+  hpp({
+    whitelist: [
+      'duration',
+      'difficulty',
+      'maxGroupSize',
+      'ratingsAverage',
+      'ratingsQuantity',
+      'price',
+    ],
+  }),
+);
 
 /**
  * routes
