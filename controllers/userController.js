@@ -64,6 +64,16 @@ exports.getUser = (req, res) => {
   });
 };
 
+exports.deleteMe = catchAsync(async (req, res, next) => {
+  // we just need to make the user unActive (don't delete user document from DB)
+  await User.findByIdAndUpdate(req.user.id, { active: false });
+
+  res.status(204).json({
+    status: 'success',
+    data: null,
+  });
+});
+
 // create a new user
 exports.createUser = (req, res) => {
   res.status(500).json({
