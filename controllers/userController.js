@@ -56,6 +56,19 @@ exports.updateMe = catchAsync(async (req, res, next) => {
   });
 });
 
+// Get Current logged-in User
+exports.getCurrentUser = catchAsync(async (req, res, next) => {
+  const currentUser = req.user;
+
+  // send Response
+  res.status(200).json({
+    status: 'success',
+    data: {
+      currentUser,
+    },
+  });
+});
+
 // get a single user
 exports.getUser = (req, res) => {
   res.status(500).json({
