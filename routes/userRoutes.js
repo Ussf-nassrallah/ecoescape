@@ -33,6 +33,6 @@ router.delete('/deleteMe', protect, deleteMe);
 
 router.route('/').get(protect, getAllUsers).post(createUser);
 router.route('/me').get(protect, getCurrentUser);
-router.route('/:id').get(getUser).patch(updateUser).delete(deleteUser);
+router.route('/:id').get(protect, getUser).patch(updateUser).delete(deleteUser);
 
 module.exports = router;
