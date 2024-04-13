@@ -24,7 +24,7 @@ router
 router
   .route('/:id')
   .get(protect, getTour)
-  .patch(protect, restrictTo('admin', 'lead-guide'), updateTour)
-  .delete(protect, restrictTo('admin', 'lead-guide'), deleteTour);
+  .patch(protect, restrictTo('admin', 'lead-guide', 'guide'), updateTour)
+  .delete(protect, restrictTo('admin', 'lead-guide', 'guide'), deleteTour);
 
 module.exports = router;
