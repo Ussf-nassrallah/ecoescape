@@ -186,6 +186,15 @@ tourSchema.post(/^find/, function (docs, next) {
   next();
 });
 
+tourSchema.pre(/^find/, function (next) {
+  // this is point to the current query
+  this.populate({
+    path: 'guides',
+    select: '-__v -passwordChangedAt',
+  });
+  next();
+});
+
 /**
  * Aggregation Middleware
  */
