@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const User = require('../models/userModel');
 const slugify = require('slugify');
 
 const tourSchema = new mongoose.Schema(
@@ -90,6 +91,39 @@ const tourSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+
+    startLocation: {
+      // GeoJson
+      type: {
+        type: String,
+        default: 'Point',
+        enum: ['Point'],
+      },
+      coordinates: [Number],
+      address: String,
+      description: String,
+    },
+
+    locations: [
+      {
+        type: {
+          type: String,
+          default: 'Point',
+          enum: ['Point'],
+        },
+        coordinates: [Number],
+        address: String,
+        description: String,
+        day: Number,
+      },
+    ],
+
+    guides: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: 'User',
+      },
+    ],
   },
   {
     // each time that the data output it as a json we went a virtual to be true
@@ -118,6 +152,12 @@ tourSchema.pre('save', function (next) {
   next();
 });
 
+// tourSchema.pre('save', async function (next) {
+//   const guidesPromises = this.guides.map(async (id) => await User.findById(id));
+//   this.guides = await Promise.all(guidesPromises);
+//   next();
+// });
+
 /**
  * Query Middleware
  * allow us to run functions before or after a certain query is executed
@@ -143,6 +183,15 @@ tourSchema.post(/^find/, function (docs, next) {
   console.log(`Query took ${Date.now() - this.start} milliseconds!`);
 
   // Continue with the next middleware in the stack
+  next();
+});
+
+tourSchema.pre(/^find/, function (next) {
+  // this is point to the current query
+  this.populate({
+    path: 'guides',
+    select: '-__v -passwordChangedAt',
+  });
   next();
 });
 
