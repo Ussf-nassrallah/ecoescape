@@ -31,7 +31,7 @@ exports.getTours = catchAsync(async (req, res, next) => {
 // get a single tour
 exports.getTour = catchAsync(async (req, res, next) => {
   const tourId = req.params.id;
-  const tour = await Tour.findById(tourId).populate('guides');
+  const tour = await Tour.findById(tourId).populate('reviews');
 
   // Check if a tour is not found in the database
   if (!tour) {
