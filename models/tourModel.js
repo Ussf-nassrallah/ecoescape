@@ -1,6 +1,7 @@
+// eslint-disable-next-line import/no-extraneous-dependencies
 const mongoose = require('mongoose');
-const User = require('../models/userModel');
 const slugify = require('slugify');
+const User = require('./userModel');
 
 const tourSchema = new mongoose.Schema(
   {
