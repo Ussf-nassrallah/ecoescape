@@ -1,7 +1,7 @@
 const Review = require('../models/reviewModel');
 const catchAsync = require('../utils/catchAsync');
 
-// get all tours endpoint
+// get all reviews
 exports.getAllReviews = catchAsync(async (req, res, next) => {
   const reviews = await Review.find();
 
@@ -16,6 +16,10 @@ exports.getAllReviews = catchAsync(async (req, res, next) => {
 
 // create a new review
 exports.createReview = catchAsync(async (req, res, next) => {
+  // Allow nested routes
+  if (!req.body.tour) req.body.tour = req.params.tourId;
+  if (!req.body.user) req.body.user = req.user.id;
+
   const newReview = await Review.create(req.body);
 
   res.status(201).json({
@@ -24,4 +28,4 @@ exports.createReview = catchAsync(async (req, res, next) => {
       newReview,
     },
   });
-})
+});
