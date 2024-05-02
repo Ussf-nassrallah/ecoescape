@@ -47,43 +47,10 @@ exports.getTour = catchAsync(async (req, res, next) => {
   });
 });
 
-// Endpoint to create a new tour
-// Use catchAsync to handle any asynchronous operations and catch errors
-exports.createTour = catchAsync(async (req, res, next) => {
-  // Create a new tour using data from the request body
-  const newTour = await Tour.create(req.body);
-
-  // Send a success response with the created tour data
-  res.status(201).json({
-    status: 'success',
-    message: 'Tour created successfully',
-    data: { tour: newTour },
-  });
-});
-
+// create a new tour
+exports.createTour = factory.createOne(Tour);
 // update a tour
-exports.updateTour = catchAsync(async (req, res, next) => {
-  const tourId = req.params.id;
-  const tourData = req.body;
-  const tour = await Tour.findByIdAndUpdate(tourId, tourData, {
-    new: true,
-    runValidators: true,
-  });
-
-  // Check if a tour is not found in the database
-  if (!tour) {
-    // If no tour is found, create a new AppError with a message indicating the resource was not found
-    // Pass the error to the next middleware function (app.js -> globalErrorHandler) with a 404 status code
-    return next(new AppError('No tour found with that ID', 404));
-  }
-
-  res.status(200).json({
-    status: 'success',
-    message: 'tour updated successfully',
-    data: { tour },
-  });
-});
-
+exports.updateTour = factory.updateOne(Tour);
 // delete a tour
 exports.deleteTour = factory.deleteOne(Tour);
 
