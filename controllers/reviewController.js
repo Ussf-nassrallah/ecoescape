@@ -3,13 +3,20 @@ const catchAsync = require('../utils/catchAsync');
 
 // get all reviews
 exports.getAllReviews = catchAsync(async (req, res, next) => {
-  const reviews = await Review.find();
+  let filter = {};
 
+  // Check tour ID
+  if (req.params.tourId) filter = { tour: req.params.tourId };
+
+  // GET tour reviews
+  const tourReviews = await Review.find(filter);
+
+  // Send response (tour reviews)
   res.status(200).json({
     status: 'success',
-    results: reviews.length,
+    results: tourReviews.length,
     data: {
-      reviews,
+      reviews: tourReviews,
     },
   });
 });
