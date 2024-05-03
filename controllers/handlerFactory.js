@@ -1,5 +1,6 @@
 // Use catchAsync to handle any asynchronous operations and catch errors
 const catchAsync = require('../utils/catchAsync');
+const APIFeatures = require('../utils/apiFeatures');
 const AppError = require('../utils/appError');
 
 // Delete document from collection
@@ -54,5 +55,50 @@ exports.createOne = (Model) =>
       status: 'success',
       message: 'Document created successfully',
       data: { data: newDocument },
+    });
+  });
+
+// Get a single Document
+exports.getOne = (Model, popOptions) =>
+  catchAsync(async (req, res, next) => {
+    let query = Model.findById(req.params.id);
+    if (popOptions) query = query.populate(popOptions);
+
+    const document = await query;
+
+    // Check if a document is not found in the database
+    if (!document) {
+      // If no document is found, create a new AppError with a message indicating the resource was not found
+      // Pass the error to the next middleware function (app.js -> globalErrorHandler) with a 404 status code
+      return next(new AppError('No document found with that ID', 404));
+    }
+
+    return res.status(200).json({
+      status: 'success',
+      data: { data: document },
+    });
+  });
+
+// Get all documents from collection
+exports.getAll = (Model) =>
+  catchAsync(async (req, res, next) => {
+    // To allow for nested GET reviews on tour
+    let filter = {};
+    // Check tour ID
+    if (req.params.tourId) filter = { tour: req.params.tourId };
+
+    // Execute the query to fetch documents matching the specified criteria and await the result
+    const features = new APIFeatures(Model.find(filter), req.query)
+      .filter()
+      .sort()
+      .limitFields()
+      .paginate();
+    const documents = await features.query;
+
+    // Send response
+    res.status(200).json({
+      status: 'success',
+      results: documents.length,
+      data: { documents },
     });
   });

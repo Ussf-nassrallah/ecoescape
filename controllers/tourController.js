@@ -1,7 +1,5 @@
 const Tour = require('../models/tourModel');
-const APIFeatures = require('../utils/apiFeatures');
 const catchAsync = require('../utils/catchAsync');
-const AppError = require('../utils/appError');
 const factory = require('./handlerFactory');
 
 exports.aliasTopTours = (req, res, next) => {
@@ -12,41 +10,9 @@ exports.aliasTopTours = (req, res, next) => {
 };
 
 // get a list of tours
-exports.getTours = catchAsync(async (req, res, next) => {
-  // Execute the query to fetch tours matching the specified criteria and await the result
-  const features = new APIFeatures(Tour.find(), req.query)
-    .filter()
-    .sort()
-    .limitFields()
-    .paginate();
-  const tours = await features.query;
-
-  // Send response
-  res.status(200).json({
-    status: 'success',
-    results: tours.length,
-    data: { tours },
-  });
-});
-
+exports.getTours = factory.getAll(Tour);
 // get a single tour
-exports.getTour = catchAsync(async (req, res, next) => {
-  const tourId = req.params.id;
-  const tour = await Tour.findById(tourId).populate('reviews');
-
-  // Check if a tour is not found in the database
-  if (!tour) {
-    // If no tour is found, create a new AppError with a message indicating the resource was not found
-    // Pass the error to the next middleware function (app.js -> globalErrorHandler) with a 404 status code
-    return next(new AppError('No tour found with that ID', 404));
-  }
-
-  return res.status(200).json({
-    status: 'success',
-    data: { tour },
-  });
-});
-
+exports.getTour = factory.getOne(Tour, { path: 'reviews' });
 // create a new tour
 exports.createTour = factory.createOne(Tour);
 // update a tour

@@ -16,6 +16,7 @@ router
 
 router
   .route('/:id')
+  .get(protect, reviewController.getReview)
   .delete(
     protect,
     restrictTo('user', 'admin', 'guide'),
