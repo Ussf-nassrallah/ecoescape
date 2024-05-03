@@ -18,27 +18,23 @@ const {
 
 const router = express.Router();
 
-// POST /tours/tourId/reviews => nested Routes
-// GET /tours/tourId/reviews
-// GET /tours/tourId/reviews/reviewId
-// router
-//   .route('/:tourId/reviews')
-//   .post(protect, restrictTo('user'), createReview);
-
 router.use('/:tourId/reviews', reviewRouter);
 
 router.route('/top-5-cheap').get(aliasTopTours, getTours);
 router.route('/tour-stats').get(getTourStats);
-router.route('/monthly-plan/:year').get(getMonthlyPlan);
+
+router
+  .route('/monthly-plan/:year')
+  .get(protect, restrictTo('admin', 'lead-guide', 'guide'), getMonthlyPlan);
 
 router
   .route('/')
-  .get(protect, getTours)
-  .post(protect, restrictTo('admin', 'lead-guide', 'guide'), createTour);
+  .get(getTours)
+  .post(protect, restrictTo('admin', 'lead-guide'), createTour);
 router
   .route('/:id')
-  .get(protect, getTour)
-  .patch(protect, restrictTo('admin', 'lead-guide', 'guide'), updateTour)
-  .delete(protect, restrictTo('admin', 'lead-guide', 'guide'), deleteTour);
+  .get(getTour)
+  .patch(protect, restrictTo('admin', 'lead-guide'), updateTour)
+  .delete(protect, restrictTo('admin', 'lead-guide'), deleteTour);
 
 module.exports = router;
