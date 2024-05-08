@@ -64,11 +64,19 @@ reviewSchema.statics.calcAverageRatings = async function (tourId) {
       },
     },
   ]);
-  // update Tour (ratingsAverage, ratingsQuantity)
-  await Tour.findByIdAndUpdate(tourId, {
-    ratingsQuantity: stats[0].nRating,
-    ratingsAverage: stats[0].avgRating,
-  });
+  if (stats.length > 0) {
+    // update Tour (ratingsAverage, ratingsQuantity)
+    await Tour.findByIdAndUpdate(tourId, {
+      ratingsQuantity: stats[0].nRating,
+      ratingsAverage: stats[0].avgRating,
+    });
+  } else {
+    // update Tour (ratingsAverage, ratingsQuantity)
+    await Tour.findByIdAndUpdate(tourId, {
+      ratingsQuantity: 0,
+      ratingsAverage: 4.5,
+    });
+  }
 };
 
 // use this Middleware each time new review is created
@@ -76,6 +84,19 @@ reviewSchema.post('save', function () {
   // this point to the current document
   // constructor: the Model who created document
   this.constructor.calcAverageRatings(this.tour);
+  // console.log(this);
+});
+
+reviewSchema.pre(/^findOneAnd/, async function (next) {
+  // this: point to the query
+  this.rev = await this.findOne();
+  console.log(this.rev);
+  next();
+});
+
+reviewSchema.post(/^findOneAnd/, async function () {
+  // await this.findOne(); does not work here, query has already executed
+  await this.rev.constructor.calcAverageRatings(this.rev.tour);
 });
 
 // Review Model
