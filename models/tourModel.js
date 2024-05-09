@@ -1,7 +1,7 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 const mongoose = require('mongoose');
 const slugify = require('slugify');
-const User = require('./userModel');
+// const User = require('./userModel');
 
 const tourSchema = new mongoose.Schema(
   {
@@ -133,6 +133,8 @@ const tourSchema = new mongoose.Schema(
     toObject: { virtuals: true },
   },
 );
+
+tourSchema.index({ startLocation: '2dsphere' });
 
 // define a virtual property on a tour schema
 // virtual property will be created each time that we got data from DB
