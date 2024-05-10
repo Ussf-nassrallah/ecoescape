@@ -1,6 +1,6 @@
 const Tour = require('../models/tourModel');
-const APIFeatures = require('../utils/apiFeatures');
 const catchAsync = require('../utils/catchAsync');
+const factory = require('./handlerFactory');
 const AppError = require('../utils/appError');
 
 exports.aliasTopTours = (req, res, next) => {
@@ -11,96 +11,15 @@ exports.aliasTopTours = (req, res, next) => {
 };
 
 // get a list of tours
-exports.getTours = catchAsync(async (req, res, next) => {
-  // Execute the query to fetch tours matching the specified criteria and await the result
-  const features = new APIFeatures(Tour.find(), req.query)
-    .filter()
-    .sort()
-    .limitFields()
-    .paginate();
-  const tours = await features.query;
-
-  // Send response
-  res.status(200).json({
-    status: 'success',
-    results: tours.length,
-    data: { tours },
-  });
-});
-
+exports.getTours = factory.getAll(Tour);
 // get a single tour
-exports.getTour = catchAsync(async (req, res, next) => {
-  const tourId = req.params.id;
-  const tour = await Tour.findById(tourId);
-
-  // Check if a tour is not found in the database
-  if (!tour) {
-    // If no tour is found, create a new AppError with a message indicating the resource was not found
-    // Pass the error to the next middleware function (app.js -> globalErrorHandler) with a 404 status code
-    return next(new AppError('No tour found with that ID', 404));
-  }
-
-  return res.status(200).json({
-    status: 'success',
-    data: { tour },
-  });
-});
-
-// Endpoint to create a new tour
-// Use catchAsync to handle any asynchronous operations and catch errors
-exports.createTour = catchAsync(async (req, res, next) => {
-  // Create a new tour using data from the request body
-  const newTour = await Tour.create(req.body);
-
-  // Send a success response with the created tour data
-  res.status(201).json({
-    status: 'success',
-    message: 'Tour created successfully',
-    data: { tour: newTour },
-  });
-});
-
+exports.getTour = factory.getOne(Tour, { path: 'reviews' });
+// create a new tour
+exports.createTour = factory.createOne(Tour);
 // update a tour
-exports.updateTour = catchAsync(async (req, res, next) => {
-  const tourId = req.params.id;
-  const tourData = req.body;
-  const tour = await Tour.findByIdAndUpdate(tourId, tourData, {
-    new: true,
-    runValidators: true,
-  });
-
-  // Check if a tour is not found in the database
-  if (!tour) {
-    // If no tour is found, create a new AppError with a message indicating the resource was not found
-    // Pass the error to the next middleware function (app.js -> globalErrorHandler) with a 404 status code
-    return next(new AppError('No tour found with that ID', 404));
-  }
-
-  res.status(200).json({
-    status: 'success',
-    message: 'tour updated successfully',
-    data: { tour },
-  });
-});
-
+exports.updateTour = factory.updateOne(Tour);
 // delete a tour
-exports.deleteTour = catchAsync(async (req, res, next) => {
-  const tourId = req.params.id;
-  const tour = await Tour.findByIdAndDelete(tourId);
-
-  // Check if a tour is not found in the database
-  if (!tour) {
-    // If no tour is found, create a new AppError with a message indicating the resource was not found
-    // Pass the error to the next middleware function (app.js -> globalErrorHandler) with a 404 status code
-    return next(new AppError('No tour found with that ID', 404));
-  }
-
-  res.status(204).json({
-    status: 'success',
-    message: 'tour deleted successfully',
-    data: null,
-  });
-});
+exports.deleteTour = factory.deleteOne(Tour);
 
 // Retrieve tour statistics based on specified criteria
 exports.getTourStats = catchAsync(async (req, res, next) => {
@@ -175,5 +94,74 @@ exports.getMonthlyPlan = catchAsync(async (req, res) => {
   return res.status(200).json({
     status: 'success',
     data: { plan },
+  });
+});
+
+exports.getToursWithin = catchAsync(async (req, res, next) => {
+  const { distance, latlng, unit } = req.params;
+  const [lat, lng] = latlng.split(',');
+  // radius of the earth in mi = 3963.2
+  // radius of the earth in km = 6378.1
+  const radius = unit === 'mi' ? distance / 3963.2 : distance / 6378.1;
+  if (!lat || !lng) {
+    next(
+      new AppError(
+        'Please provide latitur and longitude in the format lat,lng.',
+        400,
+      ),
+    );
+  }
+  const tours = await Tour.find({
+    startLocation: { $geoWithin: { $centerSphere: [[lng, lat], radius] } },
+  });
+  console.log(
+    `{startLocation: { $geoWithin: { $centerSphere: [[${lng}, ${lat}], ${radius}] } },}`,
+  );
+  res.status(200).json({
+    status: 'success',
+    results: tours.length,
+    data: {
+      data: tours,
+    },
+  });
+});
+
+exports.getDistances = catchAsync(async (req, res, next) => {
+  const { latlng, unit } = req.params;
+  const [lat, lng] = latlng.split(',');
+  const multiplier = unit === 'mi' ? 0.000621371 : 0.001;
+
+  if (!lat || !lng) {
+    next(
+      new AppError(
+        'Please provide latitutr and longitude in the format lat,lng.',
+        400,
+      ),
+    );
+  }
+  const distances = await Tour.aggregate([
+    {
+      $geoNear: {
+        near: {
+          type: 'Point',
+          coordinates: [lng * 1, lat * 1],
+        },
+        distanceField: 'distance',
+        distanceMultiplier: multiplier,
+      },
+    },
+    {
+      $project: {
+        distance: 1,
+        name: 1,
+      },
+    },
+  ]);
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      data: distances,
+    },
   });
 });

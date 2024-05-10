@@ -1,6 +1,7 @@
+// eslint-disable-next-line import/no-extraneous-dependencies
 const mongoose = require('mongoose');
-const User = require('../models/userModel');
 const slugify = require('slugify');
+// const User = require('./userModel');
 
 const tourSchema = new mongoose.Schema(
   {
@@ -37,6 +38,7 @@ const tourSchema = new mongoose.Schema(
       default: 4.5,
       min: [1, 'Rating must be above 1.0'],
       max: [5, 'Rating must be below 5.0'],
+      set: (val) => Math.round(val * 10) / 10,
     },
 
     ratingsQuantity: {
@@ -132,6 +134,8 @@ const tourSchema = new mongoose.Schema(
   },
 );
 
+tourSchema.index({ startLocation: '2dsphere' });
+
 // define a virtual property on a tour schema
 // virtual property will be created each time that we got data from DB
 // durationWeeks: this property it's not a part of DB
@@ -139,6 +143,13 @@ tourSchema.virtual('durationWeeks').get(function () {
   // this: pointing to the current document
   // when we using this keyword we need to work with regular function
   return this.duration / 7;
+});
+
+// virtual populate
+tourSchema.virtual('reviews', {
+  ref: 'Review',
+  foreignField: 'tour',
+  localField: '_id',
 });
 
 /**
@@ -198,12 +209,12 @@ tourSchema.pre(/^find/, function (next) {
 /**
  * Aggregation Middleware
  */
-tourSchema.pre('aggregate', function (next) {
-  // this: pointing to the current aggregation object
-  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
-  console.log(this.pipeline());
-  next();
-});
+// tourSchema.pre('aggregate', function (next) {
+//   // this: pointing to the current aggregation object
+//   this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+//   console.log(this.pipeline());
+//   next();
+// });
 
 const Tour = mongoose.model('Tour', tourSchema);
 

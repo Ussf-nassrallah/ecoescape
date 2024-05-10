@@ -1,20 +1,7 @@
 const User = require('../models/userModel');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
-
-// get a list of users
-exports.getAllUsers = catchAsync(async (req, res, next) => {
-  const users = await User.find();
-
-  // send Response
-  res.status(200).json({
-    status: 'success',
-    results: users.length,
-    data: {
-      users,
-    },
-  });
-});
+const factory = require('./handlerFactory');
 
 // function thats create a new Object from obj
 // the new Object should only includes allowedFields
@@ -69,14 +56,6 @@ exports.getCurrentUser = catchAsync(async (req, res, next) => {
   });
 });
 
-// get a single user
-exports.getUser = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'This route is not yet defined!',
-  });
-};
-
 exports.deleteMe = catchAsync(async (req, res, next) => {
   // we just need to make the user unActive (don't delete user document from DB)
   await User.findByIdAndUpdate(req.user.id, { active: false });
@@ -95,18 +74,11 @@ exports.createUser = (req, res) => {
   });
 };
 
-// update user
-exports.updateUser = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'This route is not yet defined!',
-  });
-};
-
+// Get all users
+exports.getAllUsers = factory.getAll(User);
+// Get User
+exports.getUser = factory.getOne(User);
+// update user (Do not update passwords with this!)
+exports.updateUser = factory.updateOne(User);
 // delete user
-exports.deleteUser = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'This route is not yet defined!',
-  });
-};
+exports.deleteUser = factory.deleteOne(User);
