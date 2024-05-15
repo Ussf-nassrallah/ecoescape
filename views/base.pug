@@ -8,28 +8,12 @@ html
         link(rel='shortcut icon' type='image/png' href='img/favicon.png')
         link(rel='stylesheet' href='https://fonts.googleapis.com/css?family=Lato:300,300i,700')
     body
-        // Navbar
-        header.header
-            nav.nav.nav--tours
-                a.nav__el(href='#') All tours
-            .header__logo
-                img(src='img/logo-white.png' alt='Ecoescape logo')
-            nav.nav.nav--user
-                button.nav__el Log in
-                button.nav__el.nav__el--cta Sign up
+        // NAVBAR
+        include _header
 
         // Content
         section.overview
             h1= tour
 
-        // Footer
-        footer.footer
-            .footer__logo
-                img(src='img/logo-green.png' alt='Ecoescape logo')
-            ul.footer__nav
-                li: a(href='#') About Us
-                li: a(href='#') Download App
-                li: a(href='#') Become a guide
-                li: a(href='#') Careers
-                li: a(href='#') Contact Us
-            p.footer__copyright &copy; by Youssef Nasrallah, All rights reserved.
+        // FOOTER
+        include _footer
