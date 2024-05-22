@@ -11,8 +11,11 @@ exports.getOverview = catchAsync(async (req, res) => {
   });
 });
 
-exports.getTourDetail = (req, res) => {
+exports.getTourDetail = catchAsync(async (req, res) => {
+  const tour = await Tour.findById(req.params.tourId);
+
   res.status(200).render('tour', {
-    title: 'The Forest Hiker Tour'
+    title: tour.name,
+    tour,
   });
-};
+});
